@@ -441,6 +441,34 @@ class FullApplicationTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(422, $response->getStatusCode());
     }
 
+    public function testValidationHelpersWhenPatchAndFailing()
+    {
+        $app = new Application;
+
+        $app->patch('/', function (Illuminate\Http\Request $request) {
+            $this->validate($request, ['name' => 'required']);
+        });
+
+        $response = $app->handle(Request::create('/', 'PATCH'));
+
+        $this->assertEquals(422, $response->getStatusCode());
+    }
+
+    public function testValidationHelpersWhenPatchAndPassing()
+    {
+        $app = new Application;
+
+        $app->patch('/', function (Illuminate\Http\Request $request) {
+            $this->validate($request, ['name' => 'required']);
+        });
+
+        $srv = ['HTTP_CONTENT_TYPE' => 'application/json'];
+        $content = json_encode(['name' => 'Matt']);
+        $response = $app->handle(Request::create('/', 'PATCH', [], [], [], $srv, $content));
+
+        $this->assertEquals(200, $response->getStatusCode());
+    }
+
     public function testRedirectResponse()
     {
         $app = new Application;
