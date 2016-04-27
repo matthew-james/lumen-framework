@@ -96,6 +96,25 @@ class FullApplicationTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('12', $response->getContent());
     }
 
+    public function testRequestPutBodyIsAvailable()
+    {
+        $app = new Application;
+
+        $app->put('/', function (Request $request) {
+            if ($request->has('name')) {
+                return $request['name'];
+                // this doesn't work because it defers to HttpFoundation\Request:
+                // return $request->get('name');
+            }
+        });
+
+        $srv = ['CONTENT_TYPE' => 'application/json'];
+        $content = json_encode(['name' => 'Matt']);
+        $response = $app->handle(Request::create('/', 'PUT', [], [], [], $srv, $content));
+
+        $this->assertSame('Matt', $response->getContent());
+    }
+
     public function testCallbackRouteWithDefaultParameter()
     {
         $app = new Application;
