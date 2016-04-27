@@ -468,6 +468,79 @@ class FullApplicationTest extends PHPUnit_Framework_TestCase
 
         $this->assertSame('1234', $response->getContent());
     }
+
+    public function testCurrentRouteUri()
+    {
+        $app = new Application();
+
+        $app->get('/uri', function (Illuminate\Http\Request $request) {
+            return $request->route()->uri();
+        });
+
+        $response = $app->handle(Request::create('/uri', 'GET'));
+        $this->assertSame('/uri', $response->getContent());
+    }
+
+    public function testCurrentRouteMethods()
+    {
+        $app = new Application();
+
+        $app->get('/methods', function (Illuminate\Http\Request $request) {
+            return implode(',', $request->route()->methods());
+        });
+
+        $response = $app->handle(Request::create('/methods', 'GET'));
+        $this->assertSame('GET', $response->getContent());
+    }
+
+    public function testCurrentRouteParameters()
+    {
+        $app = new Application();
+
+        $app->get('/parameters/{param}', function (Illuminate\Http\Request $request) {
+            return $request->route()->parameter('param');
+        });
+
+        $response = $app->handle(Request::create('/parameters/first', 'GET'));
+        $this->assertSame('first', $response->getContent());
+    }
+
+    public function testCurrentRouteDomain()
+    {
+        $app = new Application();
+
+        $app->get('/domain', function (Illuminate\Http\Request $request) {
+            return $request->route()->domain();
+        });
+
+        $response = $app->handle(Request::create('/domain', 'GET'));
+        $this->assertSame('', $response->getContent());
+    }
+
+    public function testCurrentRouteActionName()
+    {
+        $app = new Application();
+
+        $app->get('/action-name', function (Illuminate\Http\Request $request) {
+            return $request->route()->getActionName();
+        });
+
+        $response = $app->handle(Request::create('/action-name', 'GET'));
+        $this->assertSame('Closure', $response->getContent());
+    }
+
+    public function testCurrentRouteAction()
+    {
+        $app = new Application();
+
+        $action = null;
+        $closure = function (Illuminate\Http\Request $request) use (&$action) {
+            $action = $request->route()->getAction();
+        };
+        $app->get('/action', $closure);
+        $app->handle(Request::create('/action', 'GET'));
+        $this->assertSame($action[0], $closure);
+    }
 }
 
 class LumenTestService

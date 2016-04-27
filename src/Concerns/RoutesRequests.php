@@ -8,6 +8,7 @@ use Throwable;
 use FastRoute\Dispatcher;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Laravel\Lumen\Routing\Route;
 use Laravel\Lumen\Routing\Pipeline;
 use Laravel\Lumen\Routing\Closure as RoutingClosure;
 use Illuminate\Http\Exception\HttpResponseException;
@@ -64,6 +65,13 @@ trait RoutesRequests
      * @var array
      */
     protected $currentRoute;
+
+    /**
+     * The current method and path info being dispatched.
+     *
+     * @var array
+     */
+    protected $currentRequestInfo;
 
     /**
      * The FastRoute dispatcher.
@@ -368,7 +376,7 @@ trait RoutesRequests
      */
     public function dispatch($request = null)
     {
-        list($method, $pathInfo) = $this->parseIncomingRequest($request);
+        list($method, $pathInfo) = $this->currentRequestInfo = $this->parseIncomingRequest($request);
 
         try {
             return $this->sendThroughPipeline($this->middleware, function () use ($method, $pathInfo) {
@@ -458,13 +466,18 @@ trait RoutesRequests
      */
     protected function handleFoundRoute($routeInfo)
     {
-        $this->currentRoute = $routeInfo;
+        $action = $routeInfo[1];
+
+        $this->currentRoute = new Route(
+            [$this->currentRequestInfo[0]],
+            $this->currentRequestInfo[1],
+            $action,
+            $routeInfo[2]
+        );
 
         $this['request']->setRouteResolver(function () {
             return $this->currentRoute;
         });
-
-        $action = $routeInfo[1];
 
         // Pipe through route middleware...
         if (isset($action['middleware'])) {
