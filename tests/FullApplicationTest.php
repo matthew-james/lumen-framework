@@ -452,6 +452,7 @@ class FullApplicationTest extends PHPUnit_Framework_TestCase
         $response = $app->handle(Request::create('/', 'PATCH'));
 
         $this->assertEquals(422, $response->getStatusCode());
+        $this->assertSame('{"name":["The name field is required."]}', $response->getContent());
     }
 
     public function testValidationHelpersWhenPatchAndPassing()
