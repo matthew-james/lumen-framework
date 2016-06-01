@@ -494,6 +494,17 @@ class FullApplicationTest extends PHPUnit_Framework_TestCase
 
         $this->assertSame('1234', $response->getContent());
     }
+
+    public function testAppDoesNotOverwriteContainerBindings()
+    {
+       $app = new Application();
+
+       $mock = Mockery::mock('Illuminate\Bus\Dispatcher');
+
+       $app->instance('Illuminate\Contracts\Bus\Dispatcher', $mock);
+
+       $this->assertSame($mock, $app['Illuminate\Contracts\Bus\Dispatcher']);
+    }
 }
 
 class LumenTestService
