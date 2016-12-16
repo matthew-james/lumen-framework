@@ -82,6 +82,26 @@ class FullApplicationTest extends PHPUnit_Framework_TestCase
         unset($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI']);
     }
 
+    public function testRequestWithoutSymfonyClassInASubDirectory()
+    {
+        $app = new Application;
+
+        $app->get('/', function () {
+            return response('Hello World');
+        });
+
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $_SERVER['REQUEST_URI']    = '/v1/';
+        $_SERVER['SCRIPT_NAME']    = '/v1/index.php';
+
+        $response = $app->dispatch();
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals('Hello World', $response->getContent());
+
+        unset($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI'], $_SERVER['SCRIPT_NAME']);
+    }
+
     public function testRequestWithParameters()
     {
         $app = new Application;

@@ -825,7 +825,20 @@ trait RoutesRequests
     {
         $query = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : '';
 
-        return '/'.trim(str_replace('?'.$query, '', $_SERVER['REQUEST_URI']), '/');
+        return '/'.trim(str_replace(['?'.$query, $this->getBaseUrl()], '', $_SERVER['REQUEST_URI']), '/');
+    }
+
+    /**
+     * Get the current HTTP request base URL.
+     *
+     * @return string
+     */
+    protected function getBaseUrl()
+    {
+        $requestPath     = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        $scriptPath      = dirname(parse_url($_SERVER['SCRIPT_NAME'], PHP_URL_PATH));
+
+        return Str::startsWith($requestPath, $scriptPath) ? $scriptPath : '';
     }
 
     /**
