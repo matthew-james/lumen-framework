@@ -610,6 +610,43 @@ class FullApplicationTest extends TestCase
         $this->assertSame('1234', $response->getContent());
     }
 
+    public function testRequestGuardReceivesInput()
+    {
+        $app = new Application();
+
+        $app['auth']->viaRequest('api', function ($request) {
+            return new \Illuminate\Auth\GenericUser(['id' => $request->input('token')]);
+        });
+
+        $app->router->get('/', function (Illuminate\Http\Request $request) {
+            return $request->user()->getAuthIdentifier();
+        });
+
+        $response = $app->handle(Request::create('/', 'GET', ['token' => '1234']));
+
+        $this->assertSame('1234', $response->getContent());
+    }
+
+    public function testRequestGuardReceivesInputWhenGuardIsResolvedBeforeDispatch()
+    {
+        $app = new Application();
+
+        $app['auth']->viaRequest('api', function ($request) {
+            return new \Illuminate\Auth\GenericUser(['id' => $request->input('token')]);
+        });
+
+        $app->router->get('/', function (Illuminate\Http\Request $request) {
+            return $request->user()->getAuthIdentifier();
+        });
+
+        // Resolve the user from the guard once, forcing the empty request to be bound.
+        $app['auth']->guard()->user();
+
+        $response = $app->handle(Request::create('/', 'GET', ['token' => '1234']));
+
+        $this->assertSame('1234', $response->getContent());
+    }
+
     public function testCanResolveValidationFactoryFromContract()
     {
         $app = new Application();
